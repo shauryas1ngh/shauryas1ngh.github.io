@@ -784,27 +784,9 @@
   <!-- Confetti container -->
   <div class="confetti-container" id="confettiContainer"></div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-analytics.js";
-    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyD7_RYfxfuYnULd6fWA4IlNqtTUgaf0xqw",
-      authDomain: "reparations-3e537.firebaseapp.com",
-      projectId: "reparations-3e537",
-      storageBucket: "reparations-3e537.firebasestorage.app",
-      messagingSenderId: "745200357784",
-      appId: "1:745200357784:web:5f32ed908df58ac29c5bed",
-      measurementId: "G-YW4W8H05D5"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const analytics = getAnalytics(app);
-    const db = getFirestore(app);
-
+  <script>
     const exams = [
-      { name: 'Exam 1', date: 'Monday, Apr 20', emoji: '🌸', done: false },
+      { name: 'Exam 1', date: 'Monday, Apr 20', emoji: '🌸', done: true },
       { name: 'Exam 2', date: 'Tuesday, Apr 21', emoji: '✨', done: false },
       { name: 'Exam 3', date: 'Wednesday, Apr 22', emoji: '💫', done: false },
       { name: 'Exam 4', date: 'Thursday, Apr 23', emoji: '🦋', done: false },
@@ -829,23 +811,6 @@
       "GG ezzzz"
     ];
 
-    async function loadFromFirebase() {
-      const snap = await getDoc(doc(db, 'examTracker', 'exams'));
-      if (snap.exists()) {
-        const data = snap.data();
-        exams.forEach((exam, i) => {
-          if (data[String(i)] !== undefined) exam.done = data[String(i)];
-        });
-      }
-      renderExams();
-    }
-
-    async function saveToFirebase() {
-      const data = {};
-      exams.forEach((exam, i) => { data[String(i)] = exam.done; });
-      await setDoc(doc(db, 'examTracker', 'exams'), data);
-    }
-
     function renderExams() {
       const list = document.getElementById('examList');
       list.innerHTML = '';
@@ -867,13 +832,12 @@
       updateProgress();
     }
 
-    async function toggleExam(index) {
+    function toggleExam(index) {
       exams[index].done = !exams[index].done;
       renderExams();
-      await saveToFirebase();
 
       if (exams[index].done) {
-        showToast(toastMessages[index % toastMessages.length]);
+        showToast(toastMessages[index]);
         spawnConfetti();
       }
 
@@ -893,19 +857,24 @@
       const total = exams.length;
       const pct = (done / total) * 100;
 
+      // Circle
       const circle = document.getElementById('circleProgress');
-      const circumference = 2 * Math.PI * 70;
+      const circumference = 2 * Math.PI * 70; // ~440
       const offset = circumference - (circumference * pct / 100);
       setTimeout(() => { circle.style.strokeDashoffset = offset; }, 100);
 
+      // Fraction
       document.getElementById('fractionText').textContent = `${done}/${total}`;
 
+      // Bar
       setTimeout(() => { document.getElementById('barFill').style.width = pct + '%'; }, 100);
       document.getElementById('barLabel').textContent = `${Math.round(pct)}% done!`;
 
+      // Stats
       document.getElementById('doneCount').textContent = done;
       document.getElementById('leftCount').textContent = total - done;
 
+      // Quote rotation
       const q = quotes[done % quotes.length];
       document.getElementById('quoteText').textContent = `"${q.text}"`;
       document.querySelector('.quote-author').textContent = `— ${q.author}`;
@@ -936,11 +905,35 @@
       }
     }
 
-    window.closeCelebration = function () {
+    function closeCelebration() {
       document.getElementById('celebration').classList.remove('show');
+    }
+
+    // Init
+    renderExams();
+  </script>
+  <script type="module">
+    // Import the functions you need from the SDKs you need
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-analytics.js";
+    // TODO: Add SDKs for Firebase products that you want to use
+    // https://firebase.google.com/docs/web/setup#available-libraries
+
+    // Your web app's Firebase configuration
+    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+    const firebaseConfig = {
+      apiKey: "AIzaSyD7_RYfxfuYnULd6fWA4IlNqtTUgaf0xqw",
+      authDomain: "reparations-3e537.firebaseapp.com",
+      projectId: "reparations-3e537",
+      storageBucket: "reparations-3e537.firebasestorage.app",
+      messagingSenderId: "745200357784",
+      appId: "1:745200357784:web:5f32ed908df58ac29c5bed",
+      measurementId: "G-YW4W8H05D5"
     };
 
-    loadFromFirebase();
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
   </script>
 </body>
 
